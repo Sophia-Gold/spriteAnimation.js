@@ -1,0 +1,38 @@
+[
+    {
+        "id": "left", 
+        "width": 225, 
+        "height": 432, 
+        "left": 0,
+        "top": 0,
+        "spriteSheetURL": "spriteSheets/left.jpg", 
+        "rows": 5, 
+        "columns": 5, 
+        "totalFrames":  24
+    },
+    
+    {
+        "id": "middle", 
+        "width": 175, 
+        "height": 432, 
+        "left": 225,
+        "top": 0,
+        "spriteSheetURL": "spriteSheets/middle.jpg", 
+        "rows": 6, 
+        "columns": 5, 
+        "totalFrames":  26
+    },
+    
+    {
+        "id": "right", 
+        "width": 251, 
+        "height": 432, 
+        "left": 400,
+        "top": 0,
+        "spriteSheetURL": "spriteSheets/right.jpg", 
+        "rows": 6, 
+        "columns": 5, 
+        "totalFrames":  28
+    }
+
+]

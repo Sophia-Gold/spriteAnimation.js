@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<script src="../spriteAnimation.js"></script>
+<style type="text/css">
+body, html {
+    overflow: hidden;
+}
+
+div {
+  align-items: center;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+}
+</style>
+</head>
+<body bgcolor="#000000">
+<div>
+<canvas id="left" width="225px" height="432px" left= "0" 
+        onmousemove="mouseMove(event,this)"></canvas>
+<canvas id="middle" width="175px" height="432px" left="225px"
+        onmousemove="mouseMove(event,this)"></canvas>
+<canvas id="right" width="251px" height="432" left="400px"
+        onmousemove="mouseMove(event,this)"></canvas>
+</div>
+<script type="text/javascript">	
+var left = new CanvasSprite(document.getElementById('left'), 
+                            225, 432, "spriteSheets/left.jpg", 5, 5, 24);
+
+var middle = new CanvasSprite(document.getElementById('middle'), 
+                              175, 432, "spriteSheets/middle.jpg", 6, 5, 26);
+    
+var right = new CanvasSprite(document.getElementById('right'), 
+                             251, 432, "spriteSheets/right.jpg", 6, 5, 28);
+
+function mouseMove(event, canvas){
+    animation = window[canvas.id];
+    var offsetY = event.clientY - canvas.getBoundingClientRect().top;
+    var relY = offsetY/animation.height;
+    animation.setFrame(relY);
+};
+</script>
+</body>
+</html>

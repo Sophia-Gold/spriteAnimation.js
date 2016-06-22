@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+<script src="../spriteAnimationPromises.js"></script>
+<script src="StackBlur.js"></script>
+<style>
+body,html {
+    height:100%;
+    margin:0;    
+}    
+    
+div { 
+    height: 100%; 
+    position: relative; 
+}
+    
+canvas { 
+    margin: auto; 
+    position: absolute; 
+    right: 0; 
+    left: 0; 
+    top: 0;
+    bottom: 0; 
+}
+</style>
+</head>
+<body bgcolor="#000000">
+<div id="content"></div>
+<script type="text/javascript">
+const { Component } = React;
+const { render } = ReactDOM;
+
+class CanvasAnimation extends Component {
+    
+    constructor(){
+        super();
+        this.pos = [0, 0 ,0]
+        this.state = {
+            data: []
+        }
+    };
+    componentDidMount() {
+        fetch("data.json")
+            .then( (response) => {
+                return response.json() })
+                    .then( (json) => {
+                        this.setState({data: json});
+                    })
+    };
+    componentDidUpdate() {
+        function animation(json) {
+             Promise.all(json.map( (data) => {
+                return(
+                    new CanvasSprite(
+                        document.getElementById(data.id),                                    
+                        data.width,
+                        data.height,
+                        data.spriteSheetURL,
+                         data.rows,
+                        data.columns,
+                        data.totalFrames)
+                )
+            })).then( (canvasSprites) => {
+                 this.animation = canvasSprites;
+                 combineCanvases(this.state.data);
+                })
+        };
+        animation.call(this, this.state.data);
+        
+        function calculateWidth(data) {
+            var width = 0;
+            var newWidth;
+            for (var i= 0; i < data.length; i++) {
+                newWidth = data[i].left + data[i].width;
+                if(newWidth > width) {
+                    width = newWidth;
+                }
+            }
+            document.getElementById('main-canvas').width = width;
+        };
+        calculateWidth(this.state.data);
+        
+        function calculateHeight(data ) {
+            var height = 0;
+            var newHeight;
+            for (var i= 0; i < data.length; i++) {
+                newHeight = data[i].top + data[i].height;
+                if (newHeight > height) {
+                    height = newHeight; 
+                }
+            }
+            document.getElementById('main-canvas').height = height;
+        };
+        calculateHeight(this.state.data)
+        
+        function combineCanvases(data) { 
+            var canvas = document.getElementById('main-canvas');
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            for(var i= 0; i < data.length; i++) {
+                var bufferCanvas = document.getElementById(data[i].id);
+                context.drawImage(bufferCanvas, data[i].left, data[i].top);
+            }
+        };   
+    };
+    handleInteraction(event) {
+        //detect what part of main-canvas corresponds to which buffer canvas
+        var canvas = document.getElementById('main-canvas');
+        var offsetX = event.clientX - canvas.getBoundingClientRect().left;
+        var offsetY = event.clientY - canvas.getBoundingClientRect().top;
+        for (var i= 0; i < this.state.data.length; i++) {
+            var bufferCanvas = document.getElementById(this.state.data[i].id);
+            var highX = this.state.data[i].width + this.state.data[i].left;
+            var lowX = this.state.data[i].left;
+            var highY = this.state.data[i].height + this.state.data[i].top;
+            var lowY = this.state.data[i].top;
+            if ((highX > offsetX) && (offsetX > lowX) && (highY > offsetY) && (offsetY > lowY)) {
+                //scale main-canvas coordinates to 0.0-1.0 inside buffer canvaS
+                var bufferOffset = offsetY - lowY;
+                var relY = bufferOffset/highY;
+                this.animation[i].setFrame(relY);
+                this.pos[i] = relY
+            };
+            //redraw all buffers
+            canvas.getContext('2d').drawImage(bufferCanvas, 
+                                                  this.state.data[i].left, this.state.data[i].top);
+        }
+        //blur entire canvas based on composite buffer positions
+        var compPos = 0;
+        for (i = 0; i < this.pos.length; i++) {
+            compPos += this.pos[i];
+        }
+        var blurAmmount = (compPos/3) * 30;
+        stackBlurCanvasRGB('main-canvas', 0, 0, canvas.width, canvas.height, blurAmmount);
+    };
+    render() {
+        var canvases = this.state.data.map( (data) => {
+            return (
+                React.createElement('canvas',
+                                    {id : data.id,
+                                    width : data.width,
+                                    height : data.height,
+                                    left: data.left,
+                                    top: data.top,
+                                    style : {visibility: 'hidden'}})
+            )
+        });
+        var mainCanvas = React.createElement('canvas',
+                                {id: 'main-canvas',
+                                onMouseMove : (event) => this.handleInteraction(event)});
+        return(
+            React.createElement('div', null, mainCanvas, ...canvases)
+        );
+    }
+};
+    
+render(
+    React.createElement(CanvasAnimation, null),
+    document.getElementById('content')
+);
+</script>
+</body>
+</html>

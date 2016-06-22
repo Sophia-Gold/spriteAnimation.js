@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+    <script src="../spriteAnimationPromises.js"></script>
+<style>
+body, html {
+    overflow: hidden;
+}
+
+div {
+  align-items: center;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+}
+</style>
+</head>
+<body bgcolor="#000000">
+<div id="content"></div>
+<script type="text/javascript">
+const { Component } = React;
+const { render } = ReactDOM;
+
+class CanvasAnimation extends Component {
+
+    constructor(){
+        super();
+        this.state = {
+            data: []
+        }
+    };
+
+    componentDidMount() {
+        fetch("data.json")
+            .then( (response) => {
+                return response.json() })
+                    .then( (json) => {
+                        this.setState({data: json});
+                    })
+    };
+
+    componentDidUpdate() {
+        function animation(json) {
+             Promise.all(json.map( (data) => {
+                return(
+                    new CanvasSprite(
+                        document.getElementById(data.id),                                    
+                        data.width,
+                        data.height,
+                        data.spriteSheetURL,
+                        data.rows,
+                        data.columns,
+                        data.totalFrames)
+                )
+            })).then( (canvasSprites) => {
+                 this.animation = canvasSprites;
+                })
+        };
+        animation.call(this, this.state.data);
+    };
+
+    handleInteraction(event, index) {
+        var offsetY = event.clientY - document.getElementById(this.state.data[index].id).getBoundingClientRect().top;
+        var relY = offsetY/this.state.data[index].height;
+        this.animation[index].setFrame(relY);
+    };
+
+    render() {
+        var canvases = this.state.data.map( (data, index) => {
+            return (
+                React.createElement('canvas',
+                                    {id : data.id,
+                                    width : data.width,
+                                    height : data.height,
+                                    onMouseMove : (event) => this.handleInteraction(event, index)}
+                                    )
+            )
+        })
+        return(
+            React.createElement('div', null, ...canvases)
+        )
+    };
+
+};
+
+
+render(
+    React.createElement(CanvasAnimation, null),
+    document.getElementById('content')
+);
+</script>
+</body>
+</html>
