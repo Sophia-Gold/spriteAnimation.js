@@ -1,6 +1,8 @@
-#spriteAnimation.js
+# spriteAnimation.js
+
 A JavaScript class for sprite-based animation in canvas.   
 Also includes a version that returns a promise when the sprite sheets load.
+
 ## Usage
 First you need to create a sprite sheet. I create mine from short video clips using a Photoshop script called layersToSprite created by [Mark McCoy.](http://www.garagegames.com/community/blogs/view/11527) 
 
